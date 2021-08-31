@@ -1,0 +1,47 @@
+<?php
+
+
+namespace Freezemage\Container\Factory;
+
+use Freezemage\Container\Contract\GeneratorInterface;
+use Freezemage\Container\Exception\ContainerException;
+use Freezemage\Container\Generator\ConstructorGenerator;
+use Freezemage\Container\Generator\ContractGenerator;
+use Freezemage\Container\Generator\SetterGenerator;
+
+
+class GeneratorFactory
+{
+    private array $types;
+
+    public function __construct()
+    {
+        $this->types = array_merge(
+            $this->registerDefaultTypes(),
+            $this->registerCustomTypes()
+        );
+    }
+
+    public function create(string $type): GeneratorInterface
+    {
+        if (!array_key_exists($type, $this->types)) {
+            throw new ContainerException('Unable to create generator of type ' . $type);
+        }
+
+        return clone $this->types[$type];
+    }
+
+    private function registerDefaultTypes(): array
+    {
+        return array(
+            'constructor' => new ConstructorGenerator(),
+            'setter' => new SetterGenerator(),
+            'contract' => new ContractGenerator()
+        );
+    }
+
+    protected function registerCustomTypes(): array
+    {
+        return array();
+    }
+}
