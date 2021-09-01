@@ -5,6 +5,7 @@ namespace Freezemage\Container\Factory;
 
 use Freezemage\Container\Contract\ResolverInterface;
 use Freezemage\Container\Exception\ContainerException;
+use Freezemage\Container\Exception\UnknownStrategyTypeException;
 use Freezemage\Container\Resolver\ConstructorResolver;
 use Freezemage\Container\Resolver\NullResolver;
 use Freezemage\Container\Resolver\SetterResolver;
@@ -25,7 +26,7 @@ class ResolverFactory
     public function create(string $type): ResolverInterface
     {
         if (!array_key_exists($type, $this->types)) {
-            throw new ContainerException('Unable to create Resolver of type ' . $type);
+            throw UnknownStrategyTypeException::create('Resolver', $type);
         }
 
         return clone $this->types[$type];

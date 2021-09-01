@@ -11,7 +11,7 @@ use ReflectionParameter;
 
 class ConstructorGenerator implements GeneratorInterface
 {
-    public function generate(ReflectionClass $reflection, array $dependencies = array())
+    public function generate(ReflectionClass $reflection, array $dependencies = array()): object
     {
         $constructor = $reflection->getConstructor();
         if ($constructor == null) {

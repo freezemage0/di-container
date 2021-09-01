@@ -5,6 +5,7 @@ namespace Freezemage\Container\Factory;
 
 use Freezemage\Container\Contract\InstantiatorInterface;
 use Freezemage\Container\Exception\ContainerException;
+use Freezemage\Container\Exception\UnknownStrategyTypeException;
 use Freezemage\Container\Instantiator\CloningInstantiator;
 use Freezemage\Container\Instantiator\CopyingInstantiator;
 use Freezemage\Container\Instantiator\DefaultInstantiator;
@@ -25,7 +26,7 @@ class InstantiatorFactory
     public function create(string $type): InstantiatorInterface
     {
         if (!array_key_exists($type, $this->types)) {
-            throw new ContainerException('Unable to create instantiator of type ' . $type);
+            throw UnknownStrategyTypeException::create('Instantiator', $type);
         }
 
         return clone $this->types[$type];

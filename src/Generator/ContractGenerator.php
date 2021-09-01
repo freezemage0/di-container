@@ -7,6 +7,8 @@ namespace Freezemage\Container\Generator;
 use Freezemage\Container\Contract\Constructable;
 use Freezemage\Container\Contract\GeneratorInterface;
 use Freezemage\Container\Contract\Settable;
+use Freezemage\Container\Exception\ContainerException;
+use Freezemage\Container\Exception\NoGenerationContractException;
 use ReflectionClass;
 
 
@@ -21,7 +23,7 @@ class ContractGenerator implements GeneratorInterface
         $this->constructor = new ConstructorGenerator();
     }
 
-    public function generate(ReflectionClass $reflection, array $dependencies = array())
+    public function generate(ReflectionClass $reflection, array $dependencies = array()): object
     {
         if ($reflection->implementsInterface(Constructable::class)) {
             return $this->constructor->generate($reflection, $dependencies);
@@ -31,6 +33,6 @@ class ContractGenerator implements GeneratorInterface
             return $this->setter->generate($reflection, $dependencies);
         }
 
-        // throw
+        throw NoGenerationContractException::forClass($reflection->getName());
     }
 }

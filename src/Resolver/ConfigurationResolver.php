@@ -48,5 +48,7 @@ class ConfigurationResolver implements ResolverInterface
 
             return $settings['dependencies'] ?? $fallback->resolve($reflection);
         }
+
+        return $fallback->resolve($reflection);
     }
 }

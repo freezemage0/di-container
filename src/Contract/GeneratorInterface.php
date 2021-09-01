@@ -15,7 +15,7 @@ interface GeneratorInterface
      * @param ReflectionClass $reflection
      * @param array $dependencies
      *
-     * @return mixed
+     * @return object
      */
-    public function generate(ReflectionClass $reflection, array $dependencies = array());
+    public function generate(ReflectionClass $reflection, array $dependencies = array()): object;
 }
