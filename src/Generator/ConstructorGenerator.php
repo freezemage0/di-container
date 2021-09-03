@@ -19,13 +19,13 @@ class ConstructorGenerator implements GeneratorInterface
         }
 
         $parameters = $constructor->getParameters();
-        $dependencies = array_map(
+        $arguments = array_map(
             function (ReflectionParameter $parameter) use ($dependencies) {
                 return $dependencies[$parameter->getName()] ?? null;
             },
             $parameters
         );
 
-        return $reflection->newInstanceArgs($dependencies);
+        return $reflection->newInstanceArgs($arguments);
     }
 }
