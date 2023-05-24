@@ -7,15 +7,11 @@ namespace Freezemage\Container;
 use Freezemage\Container\Contract\GeneratorInterface;
 use Freezemage\Container\Contract\InstantiatorInterface;
 use Freezemage\Container\Contract\ResolverInterface;
-use Freezemage\Container\Exception\ContainerException;
-use Freezemage\Container\Generator\CachingGenerator;
 use Freezemage\Container\Generator\ConstructorGenerator;
-use Freezemage\Container\Generator\FactoryGenerator;
 use Freezemage\Container\Instantiator\CloningInstantiator;
 use Freezemage\Container\Resolver\CachingResolver;
 use Freezemage\Container\Resolver\ConstructorResolver;
 use Freezemage\Container\Storage\Alias;
-use Freezemage\Container\Storage\Definitions;
 use Freezemage\Container\Storage\PrototypeCache;
 use Psr\Container\ContainerInterface;
 use ReflectionClass;
@@ -26,38 +22,31 @@ class Container implements ContainerInterface
     private Alias $alias;
     private GeneratorInterface $generator;
     private InstantiatorInterface $instantiator;
-    private PrototypeCache        $prototypeCache;
-    private ResolverInterface     $resolver;
-    private Definitions $definitions;
+    private PrototypeCache $cache;
+    private ResolverInterface $resolver;
 
     public function __construct()
     {
         $this->alias = new Alias();
-        $this->prototypeCache = new PrototypeCache();
-        $this->definitions = new Definitions();
+        $this->cache = new PrototypeCache();
     }
 
     public function get(string $id)
     {
         $className = $this->alias->get($id);
 
-        if ($this->prototypeCache->has($className)) {
-            $prototype = $this->prototypeCache->get($className);
+        if ($this->cache->has($className)) {
+            $prototype = $this->cache->get($className);
         } else {
             $reflection = new ReflectionClass($className);
 
-            if (!$this->definitions->has($className)) {
-                $dependencies = array_map(
-                        fn(string $id): object => $this->get($id),
-                        $this->getResolver()->resolve($reflection)
-                );
-            } else {
-                $dependencies = $this->definitions->get($className);
-            }
-
+            $dependencies = array_map(
+                fn(string $id): object => $this->get($id),
+                $this->getResolver()->resolve($reflection)
+            );
             $prototype = $this->getGenerator()->generate($reflection, $dependencies);
 
-            $this->prototypeCache->set($className, $prototype);
+            $this->cache->set($className, $prototype);
         }
 
         return $this->getInstantiator()->instantiate($prototype);
@@ -66,7 +55,7 @@ class Container implements ContainerInterface
     public function getResolver(): ResolverInterface
     {
         if (!isset($this->resolver)) {
-            throw new ContainerException('Resolver is not set.');
+            $this->resolver = new ConstructorResolver();
         }
 
         if (!($this->resolver instanceof CachingResolver)) {
@@ -84,9 +73,8 @@ class Container implements ContainerInterface
     public function getGenerator(): GeneratorInterface
     {
         if (!isset($this->generator)) {
-            throw new ContainerException('Generator is not set.');
+            $this->generator = new ConstructorGenerator();
         }
-
         return $this->generator;
     }
 
@@ -98,7 +86,7 @@ class Container implements ContainerInterface
     public function getInstantiator(): InstantiatorInterface
     {
         if (!isset($this->instantiator)) {
-            throw new ContainerException('Instantiator is not set.');
+            $this->instantiator = new CloningInstantiator();
         }
 
         return $this->instantiator;
@@ -112,19 +100,12 @@ class Container implements ContainerInterface
     public function has(string $id): bool
     {
         $className = $this->alias->get($id);
-        return $this->prototypeCache->has($className);
+        return $this->cache->has($className);
     }
 
     public function alias(string $id, string $className): Container
     {
         $this->alias->register($id, $className);
-        return $this;
-    }
-
-    public function define(string $id, array $dependencies = array()): Container
-    {
-        $className = $this->alias->get($id);
-        $this->definitions->register($className, $dependencies);
         return $this;
     }
 }

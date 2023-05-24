@@ -15,7 +15,7 @@ class GeneratorFactory
 {
     private array $types;
 
-    final public function __construct()
+    public function __construct()
     {
         $this->types = array_merge(
             $this->registerDefaultTypes(),
